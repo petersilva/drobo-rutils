@@ -14,13 +14,13 @@ work with my unit:
 
  * all the status stuff, seems ok.
  * blinking
+ * LUNSIZE setting.
  * option setting.
  * diagnostic dump & display.
  
 The upstream source for firmwares is gone, so I can't test firmware upgrades. As far as I can tell, aside from that,
 it works as well as the python implementation. This seems like more moden approach.
 
-The LUNSIZE setting option is g
 ---
 
 ## Workspace Architecture
