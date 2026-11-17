@@ -1,12 +1,25 @@
 # drobo-rutils
 
 A high-performance, modern Rust rewrite of the `drobo-utils` management toolset for Data Robotics / Drobo storage units.
-
-This project replaces legacy Python scripts with a safe, memory-efficient Rust Cargo workspace composed of three distinct crates:
+This project replaces Python scripts with a safe, memory-efficient Rust Cargo workspace composed of three distinct crates:
 
 - **`droboapi`**: Safe library wrapper for Drobo SCSI generic (`sg`) `ioctl` communication, subpage decoding, and device auto-discovery.
 - **`drobocli`**: Command-line utility replacing `drobom` with full subcommand support and `--simulate` testing flags.
 - **`drobogui`**: Fast, reactive GUI dashboard built with `egui` / `eframe` replacing `droboview` and `DroboGUI.py`.
+
+note from 2026:
+
+I tested as well as I could, given the limitations. I still have the 18 year old original Drobo device, and the following
+work with my unit:
+
+ * all the status stuff, seems ok.
+ * blinking
+ * LUN size,
+ * option setting.
+ * diagnostic dump & display.
+ 
+The upstream source for firmwares is gone, so I can't test firmware upgrades. As far as I can tell, aside from that,
+it works as well as the python implementation. This seems like more moden approach.
 
 ---
 
