@@ -17,7 +17,6 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
-
     Blink,
 
     Info,
@@ -39,6 +38,40 @@ enum Commands {
     },
 
     Options,
+
+    Set {
+        #[arg(help = "Setting key (e.g. name, lunsize, time, YellowThreshold, RedThreshold, DualDiskRedundancy, SpinDownDelayMinutes, IPAddress, NetMask)")]
+        key: String,
+
+        #[arg(help = "Value to set (optional for 'time')")]
+        value: Option<String>,
+    },
+}
+
+fn format_utc_timestamp(ts: u32) -> String {
+    if ts == 0 {
+        return "Not Set / Unknown".to_string();
+    }
+    let sec = ts as u64;
+    let days = sec / 86400;
+    let rem_sec = sec % 86400;
+    let hours = rem_sec / 3600;
+    let minutes = (rem_sec % 3600) / 60;
+    let seconds = rem_sec % 60;
+
+    // Civil calendar conversion algorithm (Jan 1 1970 epoch)
+    let z = days + 719468;
+    let era = z / 146097;
+    let doe = z - era * 146097;
+    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+    let y = yoe + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = doy - (153 * mp + 2) / 5 + 1;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 };
+    let y = if m <= 2 { y + 1 } else { y };
+
+    format!("{:04}-{:02}-{:02} {:02}:{:02}:{:02} UTC (timestamp: {})", y, m, d, hours, minutes, seconds, ts)
 }
 
 fn main() -> Result<()> {
@@ -68,8 +101,13 @@ fn main() -> Result<()> {
             println!("Done.");
         }
         Commands::Info => {
+            println!("---------------------------------------------------------");
             let settings = drobo.get_subpage_settings().unwrap_or((0, 0, "Drobo".to_string()));
-            println!("Device: {} | Name: {}", drobo.char_dev_file, settings.2);
+            let devices_str = drobo.char_devs.join(":");
+            println!("Drobo Name  : {:<15} Devices: {}", settings.2, devices_str);
+            println!("Time        : {}", format_utc_timestamp(settings.0));
+            println!("Year Offset : {}", settings.1);
+            println!("---------------------------------------------------------");
 
             let config = drobo.get_subpage_config()?;
             println!("\n--- Drobo Configuration ---");
@@ -84,6 +122,22 @@ fn main() -> Result<()> {
             println!("Used: {:.2} GB", cap.used_bytes as f64 / 1e9);
             println!("Free: {:.2} GB", cap.free_bytes as f64 / 1e9);
             println!("Total Virtual: {:.2} GB", cap.virtual_bytes as f64 / 1e9);
+
+            if let Ok(opts) = drobo.get_options() {
+                println!("\n--- Drobo Options ---");
+                println!("Yellow Threshold: {}%", opts.yellow_threshold);
+                println!("Red Threshold: {}%", opts.red_threshold);
+                println!("Dual Disk Redundancy: {}", opts.dual_disk_redundancy);
+                println!("Spin Down Delay: {} mins (Enabled: {})", opts.spin_down_delay_minutes, opts.spin_down_delay);
+                println!("Manual Volume Management: {}", opts.use_manual_volume_management);
+                println!("Use Static IP: {}", opts.use_static_ip_address);
+                if !opts.ip_address.is_empty() {
+                    println!("IP Address: {}", opts.ip_address);
+                }
+                if !opts.netmask.is_empty() {
+                    println!("NetMask: {}", opts.netmask);
+                }
+            }
 
             let luns = drobo.get_subpage_luns()?;
             if !luns.is_empty() {
@@ -168,6 +222,120 @@ fn main() -> Result<()> {
             println!("Use Static IP: {}", opts.use_static_ip_address);
             println!("IP Address: {}", opts.ip_address);
             println!("NetMask: {}", opts.netmask);
+        }
+        Commands::Set { key, value } => {
+            let key_lower = key.to_lowercase();
+            match key_lower.as_str() {
+                "name" => {
+                    let val = value.ok_or_else(|| {
+                        droboapi::error::DroboError::CommandFailed("Missing value for 'set name <NAME>'".to_string())
+                    })?;
+                    println!("Setting Drobo unit name to '{}'...", val);
+                    drobo.rename(&val)?;
+                    println!("Name set successfully.");
+                }
+                "lunsize" => {
+                    let val = value.ok_or_else(|| {
+                        droboapi::error::DroboError::CommandFailed("Missing value for 'set lunsize <TB>'".to_string())
+                    })?;
+                    let tb: u32 = val.parse().map_err(|_| {
+                        droboapi::error::DroboError::CommandFailed(format!("Invalid LUN size: '{}'. Must be an integer 1-16 TiB", val))
+                    })?;
+                    if !(1..=16).contains(&tb) {
+                        return Err(droboapi::error::DroboError::CommandFailed(
+                            "LUN size must be between 1 and 16 TiB.".to_string(),
+                        ));
+                    }
+                    if tb > 2 {
+                        println!("Warning: LUN sizes > 2 TiB may not be supported on older systems.");
+                    }
+                    println!("Setting LUN size to {} TiB...", tb);
+                    drobo.set_lun_size(tb)?;
+                    println!("LUN size set successfully.");
+                }
+                "time" => {
+                    println!("Syncing Drobo clock with host time...");
+                    drobo.sync_time()?;
+                    println!("Clock synchronized successfully.");
+                }
+                _ => {
+                    let val_str = value.as_deref().unwrap_or("");
+                    let mut opts = drobo.get_options()?;
+                    let mut matched = true;
+
+                    match key_lower.as_str() {
+                        "yellowthreshold" | "yellow_threshold" | "yellowalert" => {
+                            let val: u8 = val_str.parse().map_err(|_| {
+                                droboapi::error::DroboError::CommandFailed(format!("Invalid integer for {}: '{}'", key, val_str))
+                            })?;
+                            opts.yellow_threshold = val;
+                        }
+                        "redthreshold" | "red_threshold" | "redalert" => {
+                            let val: u8 = val_str.parse().map_err(|_| {
+                                droboapi::error::DroboError::CommandFailed(format!("Invalid integer for {}: '{}'", key, val_str))
+                            })?;
+                            opts.red_threshold = val;
+                        }
+                        "dualdiskredundancy" | "dual_disk_redundancy" | "redundancy" => {
+                            let b = match val_str.to_lowercase().as_str() {
+                                "true" | "1" | "yes" | "on" => true,
+                                "false" | "0" | "no" | "off" => false,
+                                _ => return Err(droboapi::error::DroboError::CommandFailed(format!("Invalid boolean for {}: '{}'", key, val_str))),
+                            };
+                            opts.dual_disk_redundancy = b;
+                        }
+                        "spindowndelayminutes" | "spin_down_delay_minutes" | "spindowndelay" | "spindown" => {
+                            let mins: u16 = val_str.parse().map_err(|_| {
+                                droboapi::error::DroboError::CommandFailed(format!("Invalid integer for {}: '{}'", key, val_str))
+                            })?;
+                            opts.spin_down_delay_minutes = mins;
+                            opts.spin_down_delay = mins > 0;
+                        }
+                        "usemanualvolumemanagement" | "use_manual_volume_management" | "manualvolumemanagement" => {
+                            let b = match val_str.to_lowercase().as_str() {
+                                "true" | "1" | "yes" | "on" => true,
+                                "false" | "0" | "no" | "off" => false,
+                                _ => return Err(droboapi::error::DroboError::CommandFailed(format!("Invalid boolean for {}: '{}'", key, val_str))),
+                            };
+                            opts.use_manual_volume_management = b;
+                        }
+                        "usestaticipaddress" | "use_static_ip_address" | "usestaticip" => {
+                            let b = match val_str.to_lowercase().as_str() {
+                                "true" | "1" | "yes" | "on" => true,
+                                "false" | "0" | "no" | "off" => false,
+                                _ => return Err(droboapi::error::DroboError::CommandFailed(format!("Invalid boolean for {}: '{}'", key, val_str))),
+                            };
+                            opts.use_static_ip_address = b;
+                        }
+                        "ipaddress" | "ip_address" | "ip" => {
+                            if val_str.is_empty() {
+                                return Err(droboapi::error::DroboError::CommandFailed("Missing IP address value".to_string()));
+                            }
+                            opts.ip_address = val_str.to_string();
+                        }
+                        "netmask" | "net_mask" | "subnetmask" => {
+                            if val_str.is_empty() {
+                                return Err(droboapi::error::DroboError::CommandFailed("Missing netmask value".to_string()));
+                            }
+                            opts.netmask = val_str.to_string();
+                        }
+                        _ => {
+                            matched = false;
+                        }
+                    }
+
+                    if matched {
+                        println!("Updating option '{}' to '{}'...", key, val_str);
+                        drobo.set_options(&opts)?;
+                        println!("Option updated successfully.");
+                    } else {
+                        return Err(droboapi::error::DroboError::CommandFailed(format!(
+                            "Unknown setting key: '{}'. Valid keys: name, lunsize, time, YellowThreshold, RedThreshold, DualDiskRedundancy, SpinDownDelayMinutes, UseManualVolumeManagement, UseStaticIPAddress, IPAddress, NetMask",
+                            key
+                        )));
+                    }
+                }
+            }
         }
     }
 

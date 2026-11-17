@@ -110,6 +110,7 @@ sudo ./target/release/drobocli [COMMAND]
 | `standby` | Issue a graceful shutdown / standby command to the Drobo. |
 | `rename <NAME>` | Rename the Drobo unit volume label and sync host UTC time. |
 | `options` | Query current thresholds, spin-down delay, redundancy, and network settings. |
+| `set <KEY> [VALUE]` | Set unit name, LUN size, sync time, thresholds (`YellowThreshold`, `RedThreshold`), redundancy, spin-down delay, or network options. |
 | `diags` | Stream raw diagnostic records from the hardware and save to `/tmp/DroboDiag_*.log`. |
 | `diagprint <FILE>` | Decrypt and display an encrypted diagnostic log file. |
 

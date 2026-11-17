@@ -19,6 +19,13 @@ mod tests {
 
         assert!(drobo.blink().is_ok());
         assert!(drobo.standby().is_ok());
+        assert!(drobo.set_lun_size(2).is_ok());
+        assert!(drobo.sync_time().is_ok());
+
+        let mut opts = drobo.get_options().unwrap();
+        opts.yellow_threshold = 80;
+        opts.ip_address = "192.168.1.100".to_string();
+        assert!(drobo.set_options(&opts).is_ok());
     }
 
     #[test]

@@ -1125,6 +1125,42 @@ impl Drobo {
         Ok(())
     }
 
+    pub fn sync_time(&mut self) -> Result<()> {
+        let current_name = self
+            .get_subpage_settings()
+            .map(|s| s.2)
+            .unwrap_or_else(|_| "Drobo".to_string());
+        self.rename(&current_name)
+    }
+
+    pub fn set_lun_size(&mut self, tb: u32) -> Result<()> {
+        if self.simulation {
+            self.transaction_next();
+            return Ok(());
+        }
+
+        let buffer = (tb as i32).to_be_bytes();
+        let sblen = buffer.len();
+
+        let mcb = vec![
+            0xea,
+            0x10,
+            0x00,
+            0x0f, // Command 0x0f = SetLunSize
+            0x00,
+            self.transaction_id as u8,
+            (0x01 << 5) | 0x01,
+            (sblen >> 8) as u8,
+            (sblen & 0xff) as u8,
+            0x00,
+        ];
+
+        let ioctl = self.ioctl.as_ref().ok_or(DroboError::IoctlError)?;
+        ioctl.put_sub_page(&mcb, &buffer)?;
+        self.transaction_next();
+        Ok(())
+    }
+
     pub fn blink(&mut self) -> Result<()> {
         self.issue_command(0x06)
     }
