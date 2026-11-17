@@ -17,33 +17,62 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
+    /// Trigger front-panel LED blinking light test
     Blink,
 
+    /// Show hardware configuration, LUN partitions/formats, settings, options, and firmware version
     Info,
 
+    /// Display connected Drobo device node, capacity usage, LUN details, and drive bay slot LEDs
     Status,
 
+    /// Issue a graceful shutdown / standby command to the Drobo
     Standby,
 
+    /// Rename the Drobo unit volume label and sync host UTC time
     Rename {
         #[arg(help = "New name for the Drobo unit")]
         name: String,
     },
 
+    /// Stream raw diagnostic records from the hardware and save to /tmp/DroboDiag_*.log
     Diags,
 
+    /// Decrypt and display an encrypted diagnostic log file
     DiagPrint {
         #[arg(help = "Path to diagnostic log file (e.g. /tmp/DroboDiag_*.log)")]
         file: String,
     },
 
+    /// Query current thresholds, spin-down delay, redundancy, and network settings
     Options,
 
+    /// Set Drobo configuration parameters, LUN size, volume name, or clock time
+    #[command(
+        about = "Set Drobo configuration parameters, LUN size, volume name, or clock time",
+        long_about = "Set Drobo configuration parameters, LUN size, volume name, or clock time.\n\n\
+Available settings keys:\n  \
+name <NAME>                             Set Drobo volume label name\n  \
+lunsize <1..16>                         Set maximum LUN size in TiB (e.g. 2, 4, 8, 16)\n  \
+time                                    Sync Drobo clock to host UTC time\n  \
+DualDiskRedundancy <true|false>         Enable or disable dual disk redundancy (RAID6 equivalent)\n  \
+YellowThreshold <PERCENT>               Set yellow alert capacity threshold percentage\n  \
+RedThreshold <PERCENT>                  Set red alert capacity threshold percentage\n  \
+SpinDownDelayMinutes <MINUTES>          Set disk spin-down delay in minutes (0 to disable)\n  \
+UseManualVolumeManagement <true|false>  Enable or disable manual volume management\n  \
+UseStaticIPAddress <true|false>         Enable or disable static IP address\n  \
+IPAddress <ADDRESS>                     Set iSCSI IP address (e.g. 192.168.2.80)\n  \
+NetMask <NETMASK>                       Set iSCSI subnet mask (e.g. 255.255.255.0)"
+    )]
     Set {
-        #[arg(help = "Setting key (e.g. name, lunsize, time, YellowThreshold, RedThreshold, DualDiskRedundancy, SpinDownDelayMinutes, IPAddress, NetMask)")]
+        #[arg(
+            help = "Setting key (e.g. name, lunsize, time, DualDiskRedundancy, YellowThreshold, RedThreshold, SpinDownDelayMinutes, IPAddress, NetMask)"
+        )]
         key: String,
 
-        #[arg(help = "Value to set (optional for 'time')")]
+        #[arg(
+            help = "Value to set (e.g. 'BackupStore', '2', 'true', '15', '192.168.1.100'). Optional for 'time'."
+        )]
         value: Option<String>,
     },
 }

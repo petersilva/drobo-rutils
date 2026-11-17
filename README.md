@@ -14,13 +14,13 @@ work with my unit:
 
  * all the status stuff, seems ok.
  * blinking
- * LUN size,
  * option setting.
  * diagnostic dump & display.
  
 The upstream source for firmwares is gone, so I can't test firmware upgrades. As far as I can tell, aside from that,
 it works as well as the python implementation. This seems like more moden approach.
 
+The LUNSIZE setting option is g
 ---
 
 ## Workspace Architecture
@@ -409,7 +409,9 @@ GNU General Public License v2 (GPL-2.0).
 
 ## Credits
 
-Original `drobo-utils` contributors:
+The rust version is entirely written by Gemini AI, guided by Peter Silva.
+
+Original `drobo-utils` contributors to the python implementation:
 - **Peter Silva**: Primary author and maintainer.
 - **Chris Atlee**: Debian packaging.
 - **Brad Guillory**: Diagnostics & patches.
@@ -422,11 +424,11 @@ Original `drobo-utils` contributors:
 
 ## Administrivia
 
-- Copyright (C) 2008, 2009 Peter Silva (Peter.A.Silva@gmail.com)
+- Copyright (C) 2026 Peter Silva (Peter.A.Silva@gmail.com)
 - Licensed under GPL-2.0. See `LICENSE` for details.
 
 ---
 
 ## License
 
-Derived from the original `drobo-utils` codebase by Peter Silva. Licensed under GPL-2.0 / GNU General Public License v2.
+Licensed under GPL-2.0 / GNU General Public License v2.
