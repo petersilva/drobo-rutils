@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "droboapi",
+    "drobocli",
+    "drobogui",
+]
+resolver = "2"

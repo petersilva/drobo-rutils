@@ -1,0 +1,14 @@
+[package]
+name = "droboapi"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+libc = "0.2"
+thiserror = "1.0"
+byteorder = "1.5"
+rand = "0.8"
+tracing = "0.1"
+reqwest = { version = "0.11", features = ["blocking", "gzip"] }
+flate2 = "1.0"
+crc32fast = "1.3"
