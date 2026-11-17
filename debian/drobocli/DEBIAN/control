@@ -1,0 +1,14 @@
+Package: drobocli
+Source: drobo-rutils
+Version: 0.1.0-1
+Architecture: amd64
+Maintainer: Peter Silva <Peter.A.Silva@gmail.com>
+Installed-Size: 980
+Depends: libc6 (>= 2.39), libgcc-s1 (>= 4.2)
+Section: admin
+Priority: optional
+Homepage: https://github.com/peter/drobo-rutils
+Description: Command-line management tool for Drobo storage units (Rust)
+ drobocli is a modern Rust command-line tool for Data Robotics Drobo
+ storage arrays. It allows querying unit status, drive slot LEDs, LUNs,
+ updating options, blinking lights, and dumping diagnostics.

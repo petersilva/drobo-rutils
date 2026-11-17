@@ -1,0 +1,14 @@
+Package: drobogui
+Source: drobo-rutils
+Version: 0.1.0-1
+Architecture: amd64
+Maintainer: Peter Silva <Peter.A.Silva@gmail.com>
+Installed-Size: 10998
+Depends: libc6 (>= 2.39), libgcc-s1 (>= 4.2)
+Section: admin
+Priority: optional
+Homepage: https://github.com/peter/drobo-rutils
+Description: Graphical dashboard for Drobo storage units (Rust)
+ drobogui is a fast, reactive desktop dashboard built with egui for
+ monitoring and configuring Drobo storage units. It provides drive bay
+ visualization, format script generation, option settings, and diagnostic viewers.

@@ -1,0 +1,16 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	cargo build --release
+
+override_dh_auto_test:
+	cargo test --release
+
+override_dh_auto_install:
+	mkdir -p debian/drobocli/usr/bin
+	mkdir -p debian/drobogui/usr/bin
+	cp target/release/drobocli debian/drobocli/usr/bin/
+	cp target/release/drobogui debian/drobogui/usr/bin/

@@ -1,0 +1,5 @@
+drobo-rutils (0.1.0-1) unstable; urgency=medium
+
+  * Initial release of drobo-rutils in Rust (droboapi, drobocli, drobogui).
+
+ -- Peter Silva <Peter.A.Silva@gmail.com>  Mon, 16 Nov 2026 12:00:00 +0000

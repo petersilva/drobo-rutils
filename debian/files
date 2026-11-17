@@ -1,0 +1,6 @@
+drobo-rutils_0.1.0-1_amd64.buildinfo admin optional
+drobocli-dbgsym_0.1.0-1_amd64.deb debug optional automatic=yes
+drobocli_0.1.0-1_amd64.deb admin optional
+drobogui-dbgsym_0.1.0-1_amd64.deb debug optional automatic=yes
+drobogui_0.1.0-1_amd64.deb admin optional
+librust-droboapi-dev_0.1.0-1_amd64.deb admin optional

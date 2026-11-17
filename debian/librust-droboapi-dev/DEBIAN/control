@@ -1,0 +1,12 @@
+Package: librust-droboapi-dev
+Source: drobo-rutils
+Version: 0.1.0-1
+Architecture: amd64
+Maintainer: Peter Silva <Peter.A.Silva@gmail.com>
+Installed-Size: 8
+Section: admin
+Priority: optional
+Homepage: https://github.com/peter/drobo-rutils
+Description: Drobo SCSI API library for Rust
+ droboapi provides safe Rust abstractions for communicating with Drobo
+ storage units over Linux SCSI generic (sg) ioctls.
